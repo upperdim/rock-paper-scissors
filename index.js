@@ -5,8 +5,9 @@ const CANVAS_WIDTH     = canv.width
 const CANVAS_HEIGHT    = canv.height
 const PI2              = 2 * Math.PI
 const BACKGROUND_COLOR = '#000000'
-const AGENT_COUNT      = 6
-const MOVEMENT_SPEED   = 4
+const AGENT_COUNT      = 20
+const MOVEMENT_SPEED   = 2
+const COLLUSION_RADIUS = 20
 
 const TYPE_ROCK        = 1001
 const TYPE_PAPER       = 1002
@@ -31,9 +32,19 @@ class Agent {
 		img.onload = function() {
 			ctx.drawImage(
 				img, 
-				agentInstance.posX, 
-				agentInstance.posY)
+				agentInstance.posX - 16, 
+				agentInstance.posY - 16)
 		}
+		// this.drawCircleAround(COLLUSION_RADIUS) // debug
+	}
+
+	drawCircleAround(radius) {
+		ctx.beginPath();
+        ctx.arc(this.posX, this.posY, radius, 0, PI2);
+        ctx.closePath();
+		ctx.strokeStyle = '#888888';
+        ctx.lineWidth = 2;
+        ctx.stroke();
 	}
 
 	// Check if this instance was captured by another agent and change type accordingly
@@ -42,7 +53,7 @@ class Agent {
 			if (this.type === agents[i].type)
 				continue
 			
-			if (distAgent(this, agents[i]) < 32) {
+			if (distAgent(this, agents[i]) < COLLUSION_RADIUS) {
 				const threatOrTarget = isThreatorTarget(this.type, agents[i].type)
 
 				if (threatOrTarget === -1) {
