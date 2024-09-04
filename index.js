@@ -16,6 +16,19 @@ const TYPE_ROCK        = 1001
 const TYPE_PAPER       = 1002
 const TYPE_SCISSORS    = 1003
 
+const images = {};
+
+function preloadImages() {
+	images[TYPE_ROCK] = new Image();
+	images[TYPE_ROCK].src = "rsc/rock.png";
+
+	images[TYPE_PAPER] = new Image();
+	images[TYPE_PAPER].src = "rsc/paper.png";
+
+	images[TYPE_SCISSORS] = new Image();
+	images[TYPE_SCISSORS].src = "rsc/scissors.png";
+}
+
 class Agent {
 	constructor(type, posX, posY) {
 		this.type = type
@@ -24,16 +37,12 @@ class Agent {
 	}
 
 	draw() {
-		let img = new Image()
-		if (this.type === TYPE_ROCK)          img.src = "rsc/rock.png"
-		else if (this.type === TYPE_PAPER)    img.src = "rsc/paper.png"
-		else if (this.type === TYPE_SCISSORS) img.src = "rsc/scissors.png"
-		let agentInstance = this
-		img.onload = function() {
+		let img = images[this.type];
+		if (img) {
 			ctx.drawImage(
 				img, 
-				agentInstance.posX - HALF_IMAGE_DIM, 
-				agentInstance.posY - HALF_IMAGE_DIM)
+				this.posX - HALF_IMAGE_DIM, 
+				this.posY - HALF_IMAGE_DIM)
 		}
 		// this.drawCircleAround(COLLUSION_RADIUS) // debug
 	}
@@ -216,6 +225,7 @@ function isAllSameType(agents) {
 }
 
 function main() {
+	preloadImages()
 	let agents = createRandomAgents(AGENT_COUNT)
 
 	function gameTick() {
@@ -226,7 +236,6 @@ function main() {
 				agents[i].move(agents, i)
 			}
 			clearScreen()
-			// TODO: it jitters
 			agents.forEach((agent) => { agent.draw() })
 		}
 	}
@@ -235,6 +244,28 @@ function main() {
 	// is there a way to make it depend on time difference between frames?
 	intervalId = setInterval(function() {gameTick()}, 14) // call every 14 milliseconds
 }
+
+// TODO: gonna upgrade to requestAnimationFrame at some point, 
+// it also should be able to provide a delta time
+// function main() {
+//  preloadImages()
+// 	let agents = createRandomAgents(AGENT_COUNT)
+
+// 	function gameTick() {
+// 		if (isAllSameType(agents) === false) {
+// 			for (let i = 0; i < AGENT_COUNT; ++i) {
+// 				agents[i].updateType(agents, i)
+// 				agents[i].move(agents, i)
+// 			}
+// 			clearScreen()
+// 			agents.forEach((agent) => { agent.draw() })
+// 		}
+
+// 		requestAnimationFrame(gameTick);
+// 	}
+
+// 	requestAnimationFrame(gameTick);
+// }
 
 main()
 
