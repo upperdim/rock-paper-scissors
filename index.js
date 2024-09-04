@@ -36,7 +36,7 @@ class Agent {
 	}
 
 	// Check if this instance was captured by another agent and change type accordingly
-	changeType(agents, ownIndex) {
+	updateType(agents, ownIndex) {
 		for (let i = ownIndex + 1; i < agents.length; ++i) {
 			if (this.type === agents[i].type)
 				continue
@@ -119,13 +119,11 @@ function isThreatorTarget(type, compareWith) {
 	}
 }
 
-// Return the distance between points P1(x1, y1) and P2(x2, y2)
 function dist(x1, y1, x2, y2) {
 	return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))
 }
 
 // TODO: move this into the class for OOP
-// Return the distance between agents `a1` and `a2`
 function distAgent(a1, a2) {
 	return Math.sqrt((a2.posX - a1.posX) * (a2.posX - a2.posX) + (a2.posY - a1.posY) * (a2.posY - a1.posY))
 }
@@ -135,7 +133,6 @@ function randInt(min, max) {
 	return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-// Return a list of random agents with `count` number of agents
 function createRandomAgents(count) {
 	let agents = []
 	const types = [TYPE_ROCK, TYPE_PAPER, TYPE_SCISSORS]
@@ -145,7 +142,6 @@ function createRandomAgents(count) {
 	return agents
 }
 
-// Paint whole canvas to a color
 function paintCanvas(colorString) {
 	ctx.beginPath()
 	ctx.fillStyle = colorString
@@ -158,7 +154,6 @@ function clearScreen() {
 	paintCanvas(BACKGROUND_COLOR)
 }
 
-// Return whether all agents are the same type
 function isAllSameType(agents) {
 	if (agents.length === 0) {
 		return true
@@ -181,7 +176,7 @@ function main() {
 	function gameTick() {
 		if (isAllSameType(agents) === false) {
 			for (let i = 0; i < AGENT_COUNT; ++i) {
-				agents[i].changeType(agents, i)
+				agents[i].updateType(agents, i)
 				agents[i].move(agents, i)
 			}
 			clearScreen()
