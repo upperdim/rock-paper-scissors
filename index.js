@@ -1,5 +1,6 @@
 var canv = document.getElementById("canv")
 var ctx  = canv.getContext("2d")
+let intervalId = 0
 
 const CANVAS_WIDTH     = canv.width
 const CANVAS_HEIGHT    = canv.height
@@ -228,7 +229,12 @@ function main() {
 		}
 	}
 
-	setInterval(function() {gameTick()}, 14) // call every 14 milliseconds
+	intervalId = setInterval(function() {gameTick()}, 14) // call every 14 milliseconds
 }
 
 main()
+
+document.getElementById("restartButton").addEventListener("click", function() {
+    clearInterval(intervalId); // stop current simulation loop
+    main();                    // restart the simulation
+});
