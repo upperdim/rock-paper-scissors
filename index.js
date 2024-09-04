@@ -8,6 +8,8 @@ const BACKGROUND_COLOR = '#000000'
 const AGENT_COUNT      = 20
 const MOVEMENT_SPEED   = 2
 const COLLUSION_RADIUS = 20
+const IMAGE_DIM        = 32
+const HALF_IMAGE_DIM   = IMAGE_DIM / 2
 
 const TYPE_ROCK        = 1001
 const TYPE_PAPER       = 1002
@@ -22,18 +24,15 @@ class Agent {
 
 	draw() {
 		let img = new Image()
-		if (this.type === TYPE_ROCK)
-			img.src = "rsc/rock.png"
-		else if (this.type === TYPE_PAPER)
-			img.src = "rsc/paper.png"
-		else if (this.type === TYPE_SCISSORS)
-			img.src = "rsc/scissors.png"
+		if (this.type === TYPE_ROCK)          img.src = "rsc/rock.png"
+		else if (this.type === TYPE_PAPER)    img.src = "rsc/paper.png"
+		else if (this.type === TYPE_SCISSORS) img.src = "rsc/scissors.png"
 		let agentInstance = this
 		img.onload = function() {
 			ctx.drawImage(
 				img, 
-				agentInstance.posX - 16, 
-				agentInstance.posY - 16)
+				agentInstance.posX - HALF_IMAGE_DIM, 
+				agentInstance.posY - HALF_IMAGE_DIM)
 		}
 		// this.drawCircleAround(COLLUSION_RADIUS) // debug
 	}
@@ -52,7 +51,7 @@ class Agent {
 		for (let i = ownIndex + 1; i < agents.length; ++i) {
 			if (this.type === agents[i].type)
 				continue
-			
+
 			if (distAgent(this, agents[i]) < COLLUSION_RADIUS) {
 				const threatOrTarget = isThreatorTarget(this.type, agents[i].type)
 
@@ -144,9 +143,9 @@ function isThreatorTarget(type, compareWith) {
 			return -1
 		}
 	} else if (type === TYPE_PAPER) {
-		if (compareWith === TYPE_ROCK) {
+		if (compareWith === TYPE_SCISSORS) {
 			return 1
-		} else if (compareWith === TYPE_SCISSORS) {
+		} else if (compareWith === TYPE_ROCK) {
 			return -1
 		}
 	} else if (type === TYPE_SCISSORS) {
@@ -164,7 +163,7 @@ function dist(x1, y1, x2, y2) {
 
 // TODO: move this into the class for OOP
 function distAgent(a1, a2) {
-	return Math.sqrt((a2.posX - a1.posX) * (a2.posX - a2.posX) + (a2.posY - a1.posY) * (a2.posY - a1.posY))
+	return Math.sqrt((a2.posX - a1.posX) * (a2.posX - a1.posX) + (a2.posY - a1.posY) * (a2.posY - a1.posY))
 }
 
 // Return a random int from `min` to `max interval both inclusive
@@ -217,7 +216,7 @@ function main() {
 			for (let i = 0; i < AGENT_COUNT; ++i) {
 				agents[i].updateType(agents, i)
 				agents[i].move(agents, i)
-			}
+				}
 			clearScreen()
 			agents.forEach((agent) => { agent.draw() })
 		}
