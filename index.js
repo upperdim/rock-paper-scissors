@@ -54,7 +54,7 @@ class Agent {
 				continue
 
 			if (distAgent(this, agents[i]) < COLLUSION_RADIUS) {
-				const threatOrTarget = isThreatorTarget(this.type, agents[i].type)
+				const threatOrTarget = isThreatOrTarget(this.type, agents[i].type)
 
 				if (threatOrTarget === -1) {
 					agents[i].type = this.type // target
@@ -75,7 +75,7 @@ class Agent {
 			if (i == ownIndex || this.type === agents[i].type)
 				continue
 
-			const threatOrTarget = isThreatorTarget(this.type, agents[i].type)
+			const threatOrTarget = isThreatOrTarget(this.type, agents[i].type)
 			const distance = distAgent(this, agents[i])
 
 			if (threatOrTarget === -1) {
@@ -139,7 +139,7 @@ class Agent {
 // Return  1 if `compareWith` is THREAT to `type`
 // Return  0 if they are the same
 // Return -1 if `compareWith` is TARGET of `type`
-function isThreatorTarget(type, compareWith) {
+function isThreatOrTarget(type, compareWith) {
 	if (type === compareWith)
 		return 0
 
