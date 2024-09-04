@@ -6,6 +6,7 @@ const CANVAS_HEIGHT    = canv.height
 const PI2              = 2 * Math.PI
 const BACKGROUND_COLOR = '#000000'
 const AGENT_COUNT      = 6
+const MOVEMENT_SPEED   = 4
 
 const TYPE_ROCK        = 1001
 const TYPE_PAPER       = 1002
@@ -54,10 +55,6 @@ class Agent {
 	}
 
 	move(agents, ownIndex) {
-		// TODO: boundary limits
-		this.posX += randInt(-5, 5) // temp
-		this.posY += randInt(-5, 5) // temp
-
 		let closestTarget = null
 		let closestThreat = null
 		let closestTargetDist = null
@@ -83,11 +80,42 @@ class Agent {
 			}
 		}
 
-		// TODO: if both exist:
-		// TODO: if target is closer than threat, run towards it
-		// TODO: if threat is closer than target, run from it
-		// TODO: if one exist:
-		// TODO: run towards if target, run from if threat
+		if (closestTarget != null && closestThreat != null) {
+			if (closestTargetDist < closestThreatDist) {
+				this.moveTowards(closestTarget.posX, closestTarget.posY)
+			} else {
+				this.moveTowards(-closestThreatDist.posX, -closestThreatDist.posY)
+			}
+		} else if (closestTarget != null) {
+			this.moveTowards(closestTarget.posX, closestTarget.posY)
+		} else if (closestThreat != null) {
+			this.moveTowards(-closestThreatDist.posX, -closestThreatDist.posY)
+		}
+	}
+
+	moveTowards(x, y) {
+		// Get the vector from one agent to another
+		let dx = x - this.posX
+		let dy = y - this.posY
+
+		// Normalize it
+		const magnitude = Math.sqrt(dx * dx + dy * dy)
+		const inverseSqrt = 1 / magnitude
+
+		if (magnitude > 0) {
+			dx *= inverseSqrt
+			dy *= inverseSqrt
+		}
+
+		// Multiply it with movement speed
+		const newX = this.posX + dx * MOVEMENT_SPEED
+		const newY = this.posY + dy * MOVEMENT_SPEED
+
+		// Boundary check before moving
+		if (newX > 0 && newX < CANVAS_WIDTH)
+			this.posX = newX
+		if (newY > 0 && newY < CANVAS_HEIGHT)
+			this.posY = newY
 	}
 }
 
