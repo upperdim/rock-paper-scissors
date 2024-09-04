@@ -7,11 +7,9 @@ const PI2              = 2 * Math.PI
 const BACKGROUND_COLOR = '#000000'
 const AGENT_COUNT      = 6
 
-imagePaths = {
-	"rock": "rsc/rock.png",
-	"paper": "rsc/paper.png",
-	"scissors": "rsc/scissors.png"
-}
+const TYPE_ROCK        = 1001
+const TYPE_PAPER       = 1002
+const TYPE_SCISSORS    = 1003
 
 class Agent {
 	constructor(type, posX, posY) {
@@ -22,7 +20,12 @@ class Agent {
 
 	draw() {
 		let img = new Image()
-		img.src = imagePaths[this.type]
+		if (this.type === TYPE_ROCK)
+			img.src = "rsc/rock.png"
+		else if (this.type === TYPE_PAPER)
+			img.src = "rsc/paper.png"
+		else if (this.type === TYPE_SCISSORS)
+			img.src = "rsc/scissors.png"
 		let agentInstance = this
 		img.onload = function() {
 			ctx.drawImage(
@@ -95,22 +98,22 @@ function isThreatorTarget(type, compareWith) {
 	if (type === compareWith)
 		return 0
 
-	if (type === "rock") {
-		if (compareWith === "paper") {
+	if (type === TYPE_ROCK) {
+		if (compareWith === TYPE_PAPER) {
 			return 1
-		} else if (compareWith === "scissors") {
+		} else if (compareWith === TYPE_SCISSORS) {
 			return -1
 		}
-	} else if (type === "paper") {
-		if (compareWith === "rock") {
+	} else if (type === TYPE_PAPER) {
+		if (compareWith === TYPE_ROCK) {
 			return 1
-		} else if (compareWith === "scissors") {
+		} else if (compareWith === TYPE_SCISSORS) {
 			return -1
 		}
-	} else if (type === "scissors") {
-		if (compareWith === "rock") {
+	} else if (type === TYPE_SCISSORS) {
+		if (compareWith === TYPE_ROCK) {
 			return 1
-		} else if (compareWith === "paper") {
+		} else if (compareWith === TYPE_PAPER) {
 			return -1
 		}
 	}
@@ -135,7 +138,7 @@ function randInt(min, max) {
 // Return a list of random agents with `count` number of agents
 function createRandomAgents(count) {
 	let agents = []
-	const types = ["rock", "paper", "scissors"]
+	const types = [TYPE_ROCK, TYPE_PAPER, TYPE_SCISSORS]
 	for (let i = 0; i < count; ++i) {
 		agents.push(new Agent(types[randInt(0, 2)], randInt(0, CANVAS_WIDTH), randInt(0, CANVAS_HEIGHT)))
 	}
