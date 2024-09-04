@@ -24,19 +24,54 @@ class Agent {
 		let img = new Image()
 		img.src = imagePaths[this.type]
 		let agentInstance = this
-		img.onload = function() { ctx.drawImage(img, agentInstance.posX, agentInstance.posY) }
+		img.onload = function() {
+			ctx.drawImage(
+				img, 
+				agentInstance.posX, 
+				agentInstance.posY)
+		}
 	}
 
 	// Check if this instance was captured by another agent and change type accordingly
 	changeType(agents, ownIndex) {
-
+		for (let i = ownIndex + 1; i < agents.length; ++i) {
+			if (this.type === agents[i].type)
+				continue
+			
+			if (dist(this.posX, this.posY, agents[i].posX, agents[i].posY) < 32) {
+				if (this.type === "rock") {
+					if (agents[i].type === "paper") {
+						this.type = "paper"
+					} else if (agents[i].type === "scissors") {
+						agents[i].type = "rock"
+					}
+				} else if (this.type === "paper") {
+					if (agents[i].type === "rock") {
+						this.type = "paper"
+					} else if (agents[i].type === "scissors") {
+						agents[i].type = "paper"
+					}
+				} else if (this.type === "scissors") {
+					if (agents[i].type === "rock") {
+						this.type = "rock"
+					} else if (agents[i].type === "paper") {
+						agents[i].type = "paper"
+					}
+				}
+			}
+		}
 	}
 
 	move(agents, ownIndex) {
 		// TODO: boundary limits
-		--this.posX
-		--this.posY
+		this.posX += randInt(-5, 5)
+		this.posY += randInt(-5, 5)
 	}
+}
+
+// Return the distance between points P1(x1, y1) and P2(x2, y2)
+function dist(x1, y1, x2, y2) {
+	return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))
 }
 
 // Return a random int from `min` to `max interval both inclusive
@@ -89,14 +124,16 @@ function main() {
 
 	function gameTick() {
 		if (isAllSameType(agents) === false) {
-			agents.forEach((agent) => { agent.changeType() })
-			agents.forEach((agent) => { agent.move() })
+			for (let i = 0; i < AGENT_COUNT; ++i) {
+				agents[i].changeType(agents, i)
+				agents[i].move(agents, i)
+			}
 			clearScreen()
 			agents.forEach((agent) => { agent.draw() })
 		}
 	}
 
-	setInterval(function() {gameTick()}, 16) // call every 16 milliseconds
+	setInterval(function() {gameTick()}, 14) // call every 14 milliseconds
 }
 
 main()
