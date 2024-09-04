@@ -220,15 +220,19 @@ function main() {
 
 	function gameTick() {
 		if (isAllSameType(agents) === false) {
+			// TODO: routing needs more work, everything ends up at the sides
 			for (let i = 0; i < AGENT_COUNT; ++i) {
 				agents[i].updateType(agents, i)
 				agents[i].move(agents, i)
 				}
 			clearScreen()
+			// TODO: it jitters
 			agents.forEach((agent) => { agent.draw() })
 		}
 	}
 
+	// TODO: it relies on FPS for consistency of movement speed, 
+	// is there a way to make it depend on time difference between frames?
 	intervalId = setInterval(function() {gameTick()}, 14) // call every 14 milliseconds
 }
 
