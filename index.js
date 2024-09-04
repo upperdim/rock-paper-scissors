@@ -94,12 +94,12 @@ class Agent {
 			if (closestTargetDist < closestThreatDist) {
 				this.moveTowards(closestTarget.posX, closestTarget.posY)
 			} else {
-				this.moveTowards(-closestThreatDist.posX, -closestThreatDist.posY)
+				this.moveAwayFrom(closestThreat.posX, closestThreat.posY)
 			}
 		} else if (closestTarget != null) {
 			this.moveTowards(closestTarget.posX, closestTarget.posY)
 		} else if (closestThreat != null) {
-			this.moveTowards(-closestThreatDist.posX, -closestThreatDist.posY)
+			this.moveAwayFrom(closestThreat.posX, closestThreat.posY)
 		}
 	}
 
@@ -126,6 +126,12 @@ class Agent {
 			this.posX = newX
 		if (newY > 0 && newY < CANVAS_HEIGHT)
 			this.posY = newY
+	}
+
+	moveAwayFrom(x, y) {
+		const oppositeX = this.posX - (x - this.posX)
+		const oppositeY = this.posY - (y - this.posY)
+		this.moveTowards(oppositeX, oppositeY)
 	}
 }
 
