@@ -38,25 +38,13 @@ class Agent {
 			if (this.type === agents[i].type)
 				continue
 			
-			if (dist(this.posX, this.posY, agents[i].posX, agents[i].posY) < 32) {
-				if (this.type === "rock") {
-					if (agents[i].type === "paper") {
-						this.type = "paper"
-					} else if (agents[i].type === "scissors") {
-						agents[i].type = "rock"
-					}
-				} else if (this.type === "paper") {
-					if (agents[i].type === "rock") {
-						this.type = "paper"
-					} else if (agents[i].type === "scissors") {
-						agents[i].type = "paper"
-					}
-				} else if (this.type === "scissors") {
-					if (agents[i].type === "rock") {
-						this.type = "rock"
-					} else if (agents[i].type === "paper") {
-						agents[i].type = "paper"
-					}
+			if (distAgent(this, agents[i]) < 32) {
+				const threatOrTarget = isThreatorTarget(this.type, agents[i].type)
+
+				if (threatOrTarget === -1) {
+					agents[i].type = this.type // target
+				} else if (threatOrTarget === 1) {
+					this.type = agents[i].type // threat
 				}
 			}
 		}
@@ -64,14 +52,79 @@ class Agent {
 
 	move(agents, ownIndex) {
 		// TODO: boundary limits
-		this.posX += randInt(-5, 5)
-		this.posY += randInt(-5, 5)
+		this.posX += randInt(-5, 5) // temp
+		this.posY += randInt(-5, 5) // temp
+
+		let closestTarget = null
+		let closestThreat = null
+		let closestTargetDist = null
+		let closestThreatDist = null
+
+		for (let i = 0; i < agents.length; ++ i) {
+			if (i == ownIndex || this.type === agents[i].type)
+				continue
+
+			const threatOrTarget = isThreatorTarget(this.type, agents[i].type)
+			const distance = distAgent(this, agents[i])
+
+			if (threatOrTarget === -1) {
+				if (closestTarget === null || distance < closestTargetDist) {
+					closestTarget = agents[i]
+					closestTargetDist = distance
+				}
+			} else if (threatOrTarget === 1) {
+				if (closestThreat === null || distance < closestThreatDist) {
+					closestThreat = agents[i]
+					closestThreatDist = distance
+				}
+			}
+		}
+
+		// TODO: if both exist:
+		// TODO: if target is closer than threat, run towards it
+		// TODO: if threat is closer than target, run from it
+		// TODO: if one exist:
+		// TODO: run towards if target, run from if threat
+	}
+}
+
+// Return  1 if `compareWith` is THREAT to `type`
+// Return  0 if they are the same
+// Return -1 if `compareWith` is TARGET of `type`
+function isThreatorTarget(type, compareWith) {
+	if (type === compareWith)
+		return 0
+
+	if (type === "rock") {
+		if (compareWith === "paper") {
+			return 1
+		} else if (compareWith === "scissors") {
+			return -1
+		}
+	} else if (type === "paper") {
+		if (compareWith === "rock") {
+			return 1
+		} else if (compareWith === "scissors") {
+			return -1
+		}
+	} else if (type === "scissors") {
+		if (compareWith === "rock") {
+			return 1
+		} else if (compareWith === "paper") {
+			return -1
+		}
 	}
 }
 
 // Return the distance between points P1(x1, y1) and P2(x2, y2)
 function dist(x1, y1, x2, y2) {
 	return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))
+}
+
+// TODO: move this into the class for OOP
+// Return the distance between agents `a1` and `a2`
+function distAgent(a1, a2) {
+	return Math.sqrt((a2.posX - a1.posX) * (a2.posX - a2.posX) + (a2.posY - a1.posY) * (a2.posY - a1.posY))
 }
 
 // Return a random int from `min` to `max interval both inclusive
