@@ -6,8 +6,8 @@ const CANVAS_WIDTH     = canv.width
 const CANVAS_HEIGHT    = canv.height
 const PI2              = 2 * Math.PI
 const BACKGROUND_COLOR = '#000000'
-const AGENT_COUNT      = 20
-const MOVEMENT_SPEED   = 2
+const AGENT_COUNT      = 100
+const MOVEMENT_SPEED   = 0.1
 const COLLUSION_RADIUS = 20
 const IMAGE_DIM        = 32
 const HALF_IMAGE_DIM   = IMAGE_DIM / 2
@@ -74,7 +74,7 @@ class Agent {
 		}
 	}
 
-	move(agents, ownIndex) {
+	move(agents, ownIndex, deltaTimeMs) {
 		let closestTarget = null
 		let closestThreat = null
 		let closestTargetDist = null
@@ -102,18 +102,18 @@ class Agent {
 
 		if (closestTarget != null && closestThreat != null) {
 			if (closestTargetDist < closestThreatDist) {
-				this.moveTowards(closestTarget.posX, closestTarget.posY)
+				this.moveTowards(closestTarget.posX, closestTarget.posY, deltaTimeMs)
 			} else {
-				this.moveAwayFrom(closestThreat.posX, closestThreat.posY)
+				this.moveAwayFrom(closestThreat.posX, closestThreat.posY, deltaTimeMs)
 			}
 		} else if (closestTarget != null) {
-			this.moveTowards(closestTarget.posX, closestTarget.posY)
+			this.moveTowards(closestTarget.posX, closestTarget.posY, deltaTimeMs)
 		} else if (closestThreat != null) {
-			this.moveAwayFrom(closestThreat.posX, closestThreat.posY)
+			this.moveAwayFrom(closestThreat.posX, closestThreat.posY, deltaTimeMs)
 		}
 	}
 
-	moveTowards(x, y) {
+	moveTowards(x, y, deltaTimeMs) {
 		// Get the vector from one agent to another
 		let dx = x - this.posX
 		let dy = y - this.posY
@@ -128,8 +128,8 @@ class Agent {
 		}
 
 		// Multiply it with movement speed
-		const newX = this.posX + dx * MOVEMENT_SPEED
-		const newY = this.posY + dy * MOVEMENT_SPEED
+		const newX = this.posX + dx * MOVEMENT_SPEED * deltaTimeMs
+		const newY = this.posY + dy * MOVEMENT_SPEED * deltaTimeMs
 
 		// Boundary check before moving
 		if (newX > 0 && newX < CANVAS_WIDTH)
@@ -138,10 +138,10 @@ class Agent {
 			this.posY = newY
 	}
 
-	moveAwayFrom(x, y) {
+	moveAwayFrom(x, y, deltaTimeMs) {
 		const oppositeX = this.posX - (x - this.posX)
 		const oppositeY = this.posY - (y - this.posY)
-		this.moveTowards(oppositeX, oppositeY)
+		this.moveTowards(oppositeX, oppositeY, deltaTimeMs)
 	}
 }
 
@@ -228,44 +228,27 @@ function main() {
 	preloadImages()
 	let agents = createRandomAgents(AGENT_COUNT)
 
-	function gameTick() {
-		if (isAllSameType(agents) === false) {
-			// TODO: routing needs more work, everything ends up at the sides
+	let previousTimeMs = performance.now(); // gives a timestamp in milliseconds with fractions eg. 1234.56
+
+	// When RequestAnimationFrame calls this, its first parameter is the current time
+	function gameTick(currentTimeMs) {
+		const deltaTimeMs = currentTimeMs - previousTimeMs;
+		previousTimeMs = currentTimeMs;
+
+		if (!isAllSameType(agents)) {
 			for (let i = 0; i < AGENT_COUNT; ++i) {
 				agents[i].updateType(agents, i)
-				agents[i].move(agents, i)
+				agents[i].move(agents, i, deltaTimeMs)
 			}
 			clearScreen()
 			agents.forEach((agent) => { agent.draw() })
 		}
+
+		requestAnimationFrame(gameTick);
 	}
 
-	// TODO: it relies on FPS for consistency of movement speed, 
-	// is there a way to make it depend on time difference between frames?
-	intervalId = setInterval(function() {gameTick()}, 14) // call every 14 milliseconds
+	requestAnimationFrame(gameTick);
 }
-
-// TODO: gonna upgrade to requestAnimationFrame at some point, 
-// it also should be able to provide a delta time
-// function main() {
-//  preloadImages()
-// 	let agents = createRandomAgents(AGENT_COUNT)
-
-// 	function gameTick() {
-// 		if (isAllSameType(agents) === false) {
-// 			for (let i = 0; i < AGENT_COUNT; ++i) {
-// 				agents[i].updateType(agents, i)
-// 				agents[i].move(agents, i)
-// 			}
-// 			clearScreen()
-// 			agents.forEach((agent) => { agent.draw() })
-// 		}
-
-// 		requestAnimationFrame(gameTick);
-// 	}
-
-// 	requestAnimationFrame(gameTick);
-// }
 
 main()
 
