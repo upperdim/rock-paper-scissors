@@ -242,9 +242,9 @@ function main() {
 			}
 			clearScreen()
 			agents.forEach((agent) => { agent.draw() })
-		}
 
-		requestAnimationFrame(gameTick);
+			requestAnimationFrame(gameTick); // setup for next frame
+		}
 	}
 
 	requestAnimationFrame(gameTick);
