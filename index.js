@@ -2,11 +2,14 @@ var canv = document.getElementById("canv")
 var ctx  = canv.getContext("2d")
 let intervalId = 0
 
+var canvGraph = document.getElementById("canv_graph")
+var ctxGraph  = canvGraph.getContext("2d")
+
 const CANVAS_WIDTH     = canv.width
 const CANVAS_HEIGHT    = canv.height
 const PI2              = 2 * Math.PI
 const BACKGROUND_COLOR = '#000000'
-const AGENT_COUNT      = 100
+const AGENT_COUNT      = 20
 const MOVEMENT_SPEED   = 0.1
 const COLLUSION_RADIUS = 20
 const IMAGE_DIM        = 32
@@ -29,6 +32,72 @@ function preloadImages() {
 	images[TYPE_SCISSORS].src = "rsc/scissors.png";
 }
 
+class Graph {
+	constructor(sx, sy, rx, ry, px, py) {
+		this.rx = rx
+		this.ry = ry
+
+		this.sx = sx
+		this.sy = sy
+
+		this.px = px
+		this.py = py
+
+		let a = ry - sy
+		let b = px - rx
+		let c = Math.sqrt(a * a + b * b)
+		let d = Math.sqrt((b * b) / 2)
+
+		this.dSx = 0               // x component of pixel decrease per agent decrease
+		this.dSy = a / AGENT_COUNT // y component of pixel decrease per agent decrease
+
+		this.dPx = b / AGENT_COUNT
+		this.dPy = 0
+
+		this.dRx = (Math.sqrt((b * b) / 2) / AGENT_COUNT) * Math.cos(45)
+		this.dRy = (Math.sqrt((b * b) / 2) / AGENT_COUNT) * Math.sin(45)
+	}
+
+	// Draws initial structure of the graph
+	init() {
+		paintCanvas(ctxGraph, 'BACKGROUND_COLOR')
+		drawLine(ctxGraph, this.sx, this.sy, this.rx, this.ry)
+		drawLine(ctxGraph, this.rx, this.ry, this.px, this.py)
+		drawLine(ctxGraph, this.px, this.py, this.sx, this.sy)
+		if (images[TYPE_SCISSORS]) ctxGraph.drawImage(images[TYPE_SCISSORS], this.sx, this.sy)
+		if (images[TYPE_ROCK])     ctxGraph.drawImage(images[TYPE_ROCK],     this.rx, this.ry)
+		if (images[TYPE_PAPER])    ctxGraph.drawImage(images[TYPE_PAPER],    this.px, this.py)
+	}
+
+	// Draws data dots of the graph
+	update(agents) {
+		let rock_count = 0
+		let paper_count = 0
+		let scissors_count = 0
+
+		for (let agent of agents) {
+			if (agent.type === TYPE_ROCK)     rock_count++
+			if (agent.type === TYPE_PAPER)    paper_count++
+			if (agent.type === TYPE_SCISSORS) scissors_count++
+		}
+
+		let rock_point_x = this.rx + this.dRx * (AGENT_COUNT - rock_count)
+		let rock_point_y = this.ry - this.dRy * (AGENT_COUNT - rock_count)
+
+		let paper_point_x = this.px - this.dPx * (AGENT_COUNT - paper_count)
+		let paper_point_y = this.py - this.dPy * (AGENT_COUNT - paper_count)
+
+		let scissors_point_x = this.sx - this.dSx * (AGENT_COUNT - scissors_count)
+		let scissors_point_y = this.sy + this.dSy * (AGENT_COUNT - scissors_count)
+
+		const radius = 3
+
+		drawCircle(ctxGraph, paper_point_x,       paper_point_y, 6, '#ffffff')
+		drawCircle(ctxGraph, scissors_point_x, scissors_point_y, 4, '#ff0000')
+		drawCircle(ctxGraph, rock_point_x,         rock_point_y, 2, '#00ff00')
+	}
+}
+
 class Agent {
 	constructor(type, posX, posY) {
 		this.type = type
@@ -48,12 +117,7 @@ class Agent {
 	}
 
 	drawCircleAround(radius) {
-		ctx.beginPath();
-        ctx.arc(this.posX, this.posY, radius, 0, PI2);
-        ctx.closePath();
-		ctx.strokeStyle = '#888888';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+		drawCircle(ctx, this.posX, this.posY, radius, '#888888')
 	}
 
 	// Check if this instance was captured by another agent and change type accordingly
@@ -191,21 +255,42 @@ function createRandomAgents(count) {
 	let agents = []
 	const types = [TYPE_ROCK, TYPE_PAPER, TYPE_SCISSORS]
 	for (let i = 0; i < count; ++i) {
-		agents.push(new Agent(types[randInt(0, 2)], randInt(0, CANVAS_WIDTH), randInt(0, CANVAS_HEIGHT)))
+		agents.push(new Agent(
+			types[randInt(0, 2)], 
+			randInt(0, CANVAS_WIDTH), 
+			randInt(0, CANVAS_HEIGHT)))
 	}
 	return agents
 }
 
-function paintCanvas(colorString) {
-	ctx.beginPath()
-	ctx.fillStyle = colorString
-	ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-	ctx.closePath()
-	ctx.fill()
+function drawCircle(context, x, y, r, color) {
+	context.beginPath();
+	context.arc(x, y, r, 0, PI2);
+	context.closePath();
+	context.strokeStyle = color;
+	context.lineWidth = 2;
+	context.stroke();
+}
+
+function drawLine(context, x1, y1, x2, y2) {
+	context.beginPath();
+	context.lineWidth = 3;
+	context.strokeStyle = '#ffffff'
+	context.moveTo(x2, y2);
+	context.lineTo(x1, y1);
+	context.stroke();
+}
+
+function paintCanvas(context, colorString) {
+	context.beginPath()
+	context.fillStyle = colorString
+	context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+	context.closePath()
+	context.fill()
 }
 	
-function clearScreen() {
-	paintCanvas(BACKGROUND_COLOR)
+function clearScreen(context) {
+	paintCanvas(context, BACKGROUND_COLOR)
 }
 
 function isAllSameType(agents) {
@@ -227,6 +312,8 @@ function isAllSameType(agents) {
 function main() {
 	preloadImages()
 	let agents = createRandomAgents(AGENT_COUNT)
+	let graph = new Graph(50, 50, 50, 670, 670, 670)
+	graph.init()
 
 	let previousTimeMs = performance.now(); // gives a timestamp in milliseconds with fractions eg. 1234.56
 
@@ -240,8 +327,11 @@ function main() {
 				agents[i].updateType(agents, i)
 				agents[i].move(agents, i, deltaTimeMs)
 			}
-			clearScreen()
+			clearScreen(ctx)
 			agents.forEach((agent) => { agent.draw() })
+			clearScreen(ctxGraph) // temp, it will be a continuous line
+			graph.init()          // temp, it will be a continuous line
+			graph.update(agents)
 
 			requestAnimationFrame(gameTick); // setup for next frame
 		}
